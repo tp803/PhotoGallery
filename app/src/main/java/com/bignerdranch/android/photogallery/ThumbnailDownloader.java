@@ -19,29 +19,29 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     private Handler mRequestHandler;
     private ConcurrentMap<T,String> mRequestMap = new ConcurrentHashMap<>();
     private Handler mResponseHandler;
-    private ThumbnailDownloadListener <T> mThumbnailDownloadListener;
+    private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
 
-    public interface ThumbnailDownloadListener<T>{
-        void onThumbnailDownloaded(T target, Bitmap thumbnail);
+    public interface ThumbnailDownloadListener<T> {
+        void onThumbnailDownloaded(T target, Bitmap bitmap);
     }
 
-    public void setmThumbnailDownloadListener(ThumbnailDownloadListener <T> listener){
+    public void setThumbnailDownloadListener(ThumbnailDownloadListener<T> listener) {
         mThumbnailDownloadListener = listener;
     }
 
-    public ThumbnailDownloader(Handler responseHandler){
+    public ThumbnailDownloader(Handler responseHandler) {
         super(TAG);
         mResponseHandler = responseHandler;
     }
 
     @Override
-    protected void onLooperPrepared(){
-        mRequestHandler = new Handler(){
+    protected void onLooperPrepared() {
+        mRequestHandler = new Handler() {
             @Override
-            public void handleMessage(Message msg){
-                if (msg.what == MESSAGE_DOWNLOAD){
+            public void handleMessage(Message msg) {
+                if (msg.what == MESSAGE_DOWNLOAD) {
                     T target = (T) msg.obj;
-                    Log.i(TAG,"Got a request for URL: " + mRequestMap.get(target));
+                    Log.i(TAG, "Got a request for URL: " + mRequestMap.get(target));
                     handleRequest(target);
                 }
             }
@@ -49,12 +49,12 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     }
 
     @Override
-    public boolean quit(){
+    public boolean quit() {
         mHasQuit = true;
         return super.quit();
     }
 
-    public void queneThumbnail(T target, String url) {
+    public void queueThumbnail(T target, String url) {
         Log.i(TAG, "Got a URL: " + url);
 
         if (url == null) {
@@ -66,42 +66,37 @@ public class ThumbnailDownloader<T> extends HandlerThread {
         }
     }
 
-    public void clearQuene(){
+    public void clearQueue() {
         mRequestHandler.removeMessages(MESSAGE_DOWNLOAD);
         mRequestMap.clear();
     }
 
-        private void handleRequest(final T target){
-            try{
-                final String url = mRequestMap.get(target);
+    private void handleRequest(final T target) {
+        try {
+            final String url = mRequestMap.get(target);
 
-                if (url == null){
-                    return;
-                }
-
-                byte[] bitmapBytes = new FlickerFetchr().getUrlBytes(url);
-                final Bitmap bitmap = BitmapFactory
-                        .decodeByteArray(bitmapBytes,0,bitmapBytes.length);
-                Log.i(TAG,"Bitmap created");
-
-                mRequestHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mRequestMap.get(target)!=url || mHasQuit){
-                            return;
-                        }
-
-                        mRequestMap.remove(target);
-                        mThumbnailDownloadListener.onThumbnailDownloaded(target,
-                                bitmap);
-                    }
-                });
-
-            } catch(IOException ioe){
-                Log.e(TAG,"Error downloading image", ioe);
+            if (url == null) {
+                return;
             }
+
+            byte[] bitmapBytes = new FlickrFetchr().getUrlBytes(url);
+            final Bitmap bitmap = BitmapFactory
+                    .decodeByteArray(bitmapBytes, 0, bitmapBytes.length);
+            Log.i(TAG, "Bitmap created");
+
+            mResponseHandler.post(new Runnable() {
+                public void run() {
+                    if (mRequestMap.get(target) != url ||
+                            mHasQuit) {
+                        return;
+                    }
+
+                    mRequestMap.remove(target);
+                    mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
+                }
+            });
+        } catch (IOException ioe) {
+            Log.e(TAG, "Error downloading image", ioe);
         }
-
-
-
+    }
 }

@@ -11,24 +11,23 @@ public abstract class SingleFragmentActivity extends AppCompatActivity {
     protected abstract Fragment createFragment();
 
     @LayoutRes
-    protected int getLayoutResId(){
+    protected int getLayoutResId() {
         return R.layout.activity_fragment;
     }
 
     @Override
-    protected void onCreate(Bundle savedInstance){
-        super.onCreate(savedInstance);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(getLayoutResId());
 
         FragmentManager fm = getSupportFragmentManager();
-        // retrieve the CrimeFragment by view ID
         Fragment fragment = fm.findFragmentById(R.id.fragment_container);
 
-        // if there is no fragment with the given ID, create a new CrimeFragment
-        if (fragment == null){
+        if (fragment == null) {
             fragment = createFragment();
-            // fragment transaction adds fragments in the fragment list
-            fm.beginTransaction().add(R.id.fragment_container,fragment).commit();
+            fm.beginTransaction()
+                    .add(R.id.fragment_container, fragment)
+                    .commit();
         }
     }
 }
