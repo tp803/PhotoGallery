@@ -17,7 +17,7 @@ import java.util.List;
 
 public class FlickerFetchr {
 
-    private static final String TAG = "FlickerFetchr";
+    private static final String TAG = "FlickrFetchr";
 
     private static final String API_KEY = "cbbec26c2e66dfe3b5cab19143f140d6";
 
@@ -85,7 +85,8 @@ public class FlickerFetchr {
             JSONObject photoJsonObject = photoJsonArray.getJSONObject(i);
 
             GalleryItem item = new GalleryItem();
-            item.setmId(photoJsonObject.getString("title"));
+            item.setmId(photoJsonObject.getString("id"));
+            item.setmCaption(photoJsonObject.getString("title"));
 
             if (!photoJsonObject.has("url_s")){
                 continue;
